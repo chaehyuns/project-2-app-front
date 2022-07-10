@@ -61,11 +61,14 @@ function SignUp({ navigation }: SignUpScreenProps) {
     }
 
     try {
-      const response = await axios.post(`${Config.SERVER_URL}/signup`, {
-        email,
-        name,
-        password,
-      });
+      const response = await axios.post(
+        "http://192.249.18.175:443/userAuth/signup",
+        {
+          email,
+          name,
+          password,
+        }
+      );
       if (response.data.succ) {
         // ... succ
         Alert.alert("알림", "회원가입되었습니다");
@@ -80,7 +83,7 @@ function SignUp({ navigation }: SignUpScreenProps) {
       // if (errorResponse) {
       //   // Alert.alert("알림", errorResponse.data.message);
       // }
-      // console.log(JSON.stringify(e.response));
+      console.log(JSON.stringify(e.response));
       return Alert.alert(`Error: ${JSON.stringify(e.response)}`);
     }
   }, [email, name, password]);

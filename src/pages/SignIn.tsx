@@ -37,7 +37,7 @@ function SignIn({ navigation }: SignInScreenProps) {
 
     try {
       const response = await axios.post(
-        "http://192.249.18.175:80/userAuth/signin",
+        "http://192.249.18.175:443/userAuth/signin",
         {
           email,
           password,
@@ -47,7 +47,7 @@ function SignIn({ navigation }: SignInScreenProps) {
       console.log("signin response: ", response);
 
       if (response.data.succ) {
-        // login succ ...
+        return Alert.alert("로그인 성공");
       } else {
         // login fail ...
         return Alert.alert("로그인 정보가 맞지 않습니다, 다시 입력해주세요");
@@ -58,6 +58,8 @@ function SignIn({ navigation }: SignInScreenProps) {
       // if (errorResponse) {
       //   Alert.alert("알림", errorResponse.data.message);
       // }
+
+      console.log("Hello world!");
       return Alert.alert(`Error: ${JSON.stringify(e.response)}`);
     }
   }, [email, password]);
