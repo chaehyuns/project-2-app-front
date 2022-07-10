@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -6,42 +6,70 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../App';
-import DismissKeyboardView from '../components/DismissKeyboardView';
+} from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+import DismissKeyboardView from "../components/DismissKeyboardView";
+import axios, { AxiosError } from "axios";
+import Config from "react-native-config";
 
-type SignInScreenProps = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
+type SignInScreenProps = NativeStackScreenProps<RootStackParamList, "SignIn">;
 
-function SignIn({navigation}: SignInScreenProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function SignIn({ navigation }: SignInScreenProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const emailRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
 
-  const onChangeEmail = useCallback(text => {
+  const onChangeEmail = useCallback((text) => {
     setEmail(text.trim()); //좌우공백 없앰
   }, []);
-  const onChangePassword = useCallback(text => {
+  const onChangePassword = useCallback((text) => {
     setPassword(text.trim());
   }, []);
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     if (!email || !email.trim()) {
-      return Alert.alert('알림', '이메일을 입력해주세요.');
+      return Alert.alert("알림", "이메일을 입력해주세요.");
     }
     if (!password || !password.trim()) {
-      return Alert.alert('알림', '비밀번호를 입력해주세요.');
+      return Alert.alert("알림", "비밀번호를 입력해주세요.");
     }
-    Alert.alert('알림', '로그인 되었습니다.');
+
+    try {
+      const response = await axios.post(
+        "http://192.249.18.175:80/userAuth/signin",
+        {
+          email,
+          password,
+        }
+      );
+
+      console.log("signin response: ", response);
+
+      if (response.data.succ) {
+        // login succ ...
+      } else {
+        // login fail ...
+        return Alert.alert("로그인 정보가 맞지 않습니다, 다시 입력해주세요");
+      }
+    } catch (e) {
+      const errorResponse = (e as AxiosError).response;
+      console.error(errorResponse);
+      // if (errorResponse) {
+      //   Alert.alert("알림", errorResponse.data.message);
+      // }
+      return Alert.alert(`Error: ${JSON.stringify(e.response)}`);
+    }
   }, [email, password]);
 
   const toSignUp = useCallback(() => {
-    navigation.navigate('SignUp');
+    navigation.navigate("SignUp");
   }, [navigation]);
 
   const canGoNext = email && password; //이메일과 비밀번호가 입력된 경우 로그인 버튼 클릭 가능
-  return ( //키보드가 지정영역 피하도록, 다른 영역을 클릭하면 키보드가 내려가도록
-    <DismissKeyboardView> 
+  return (
+    //키보드가 지정영역 피하도록, 다른 영역을 클릭하면 키보드가 내려가도록
+    <DismissKeyboardView>
       <View style={styles.inputWrapper}>
         <Text style={styles.label}>이메일</Text>
         <TextInput
@@ -86,7 +114,8 @@ function SignIn({navigation}: SignInScreenProps) {
               : styles.loginButton
           }
           disabled={!canGoNext}
-          onPress={onSubmit}>
+          onPress={onSubmit}
+        >
           <Text style={styles.loginButtonText}>로그인</Text>
         </Pressable>
         <Pressable onPress={toSignUp}>
@@ -106,25 +135,25 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
     marginBottom: 20,
   },
   buttonZone: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginButton: {
-    backgroundColor: 'gray',
+    backgroundColor: "gray",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
     marginBottom: 10,
   },
   loginButtonActive: {
-    backgroundColor: 'blue',
+    backgroundColor: "blue",
   },
   loginButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
   },
 });

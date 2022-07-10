@@ -1,4 +1,5 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, { useCallback, useRef, useState } from "react";
+
 import {
   Alert,
   Platform,
@@ -7,55 +8,81 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../App';
-import DismissKeyboardView from '../components/DismissKeyboardView';
+} from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+import DismissKeyboardView from "../components/DismissKeyboardView";
 
-type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
+import Config from "react-native-config";
+import axios, { AxiosError } from "axios";
 
-function SignUp({navigation}: SignUpScreenProps) {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
+type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, "SignUp">;
+
+function SignUp({ navigation }: SignUpScreenProps) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const emailRef = useRef<TextInput | null>(null);
   const nameRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
 
-  const onChangeEmail = useCallback(text => {
+  const onChangeEmail = useCallback((text) => {
     setEmail(text.trim()); //죄우공백 없앰
   }, []);
-  const onChangeName = useCallback(text => {
+  const onChangeName = useCallback((text) => {
     setName(text.trim());
   }, []);
-  const onChangePassword = useCallback(text => {
+  const onChangePassword = useCallback((text) => {
     setPassword(text.trim());
   }, []);
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     if (!email || !email.trim()) {
-      return Alert.alert('알림', '이메일을 입력해주세요.');
+      return Alert.alert("알림", "이메일을 입력해주세요.");
     }
     if (!name || !name.trim()) {
-      return Alert.alert('알림', '이름을 입력해주세요.');
+      return Alert.alert("알림", "이름을 입력해주세요.");
     }
     if (!password || !password.trim()) {
-      return Alert.alert('알림', '비밀번호를 입력해주세요.');
+      return Alert.alert("알림", "비밀번호를 입력해주세요.");
     }
-    if ( //이메일을 검사하는 정규 표현식
+    if (
+      //이메일을 검사하는 정규 표현식
       !/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/.test(
-        email,
+        email
       )
     ) {
-      return Alert.alert('알림', '올바른 이메일 주소가 아닙니다.');
+      return Alert.alert("알림", "올바른 이메일 주소가 아닙니다.");
     }
     if (!/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@^!%*#?&]).{8,50}$/.test(password)) {
       return Alert.alert(
-        '알림',
-        '비밀번호는 영문,숫자,특수문자($@^!%*#?&)를 모두 포함하여 8자 이상 입력해야합니다.',
+        "알림",
+        "비밀번호는 영문,숫자,특수문자($@^!%*#?&)를 모두 포함하여 8자 이상 입력해야합니다."
       );
     }
-    console.log(email, name, password);
-    Alert.alert('알림', '회원가입 되었습니다.');
+
+    try {
+      const response = await axios.post(`${Config.SERVER_URL}/signup`, {
+        email,
+        name,
+        password,
+      });
+      if (response.data.succ) {
+        // ... succ
+        Alert.alert("알림", "회원가입되었습니다");
+      } else {
+        Alert.alert("알림", "이미 존재하는 회원 정보입니다");
+      }
+
+      console.log("signup response: ", response);
+    } catch (e) {
+      const errorResponse = (e as AxiosError).response;
+      console.error(errorResponse);
+      // if (errorResponse) {
+      //   // Alert.alert("알림", errorResponse.data.message);
+      // }
+      // console.log(JSON.stringify(e.response));
+      return Alert.alert(`Error: ${JSON.stringify(e.response)}`);
+    }
   }, [email, name, password]);
 
   const canGoNext = email && name && password;
@@ -101,7 +128,7 @@ function SignUp({navigation}: SignUpScreenProps) {
           placeholderTextColor="#666"
           onChangeText={onChangePassword}
           value={password}
-          keyboardType={Platform.OS === 'android' ? 'default' : 'ascii-capable'}
+          keyboardType={Platform.OS === "android" ? "default" : "ascii-capable"}
           textContentType="password"
           secureTextEntry
           returnKeyType="send"
@@ -118,7 +145,8 @@ function SignUp({navigation}: SignUpScreenProps) {
               : styles.loginButton
           }
           disabled={!canGoNext}
-          onPress={onSubmit}>
+          onPress={onSubmit}
+        >
           <Text style={styles.loginButtonText}>회원가입</Text>
         </Pressable>
       </View>
@@ -135,25 +163,25 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
     marginBottom: 20,
   },
   buttonZone: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginButton: {
-    backgroundColor: 'gray',
+    backgroundColor: "gray",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
     marginBottom: 10,
   },
   loginButtonActive: {
-    backgroundColor: 'blue',
+    backgroundColor: "blue",
   },
   loginButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
   },
 });
